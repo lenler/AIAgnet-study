@@ -1,13 +1,15 @@
-> 本章对应源代码：https://github.com/RealKai42/langchainjs-juejin/blob/main/prompt-template.ipynb
+> 本章对应源代码：<https://github.com/RealKai42/langchainjs-juejin/blob/main/prompt-template.ipynb>
 
 Prompt 是大模型的核心，传统方式我们一般使用字符串拼接或者模版字符串来构造 prompt，而有了 langchain 后，我们可以构建可复用的 prompt 来让我们更工程化的管理和构建 prompt，从而制作更复杂的 chat bot
 
 ## 基础 prompt
+
 首先我们学习基础的 `PromptTemplate` 来理解 langchain 中是如何构建和管理 prompt template。  
 
 `PromptTemplate` 是帮助我们定义一个包含变量的字符串模版，我们可以通过向该类的对象输入不同的变量值来生成模版渲染的结果。 这可以方便的让我们定义一组 prompt 模板，然后在运行时根据用户的输入动态地填充变量从而生成 prompt。
 
 ### 无变量 template
+
 我们先从最基础的无变量 template 来逐步上手和理解
 
 ```js
@@ -27,7 +29,6 @@ console.log(formattedGreetingPrompt);
 没有变量的 prompt template 使用的很少，这里主要以此帮助大家理解 template 的概念。
 
 ### 含变量的 template
-
 
 ```js
 const personalizedGreetingPrompt = new PromptTemplate({
@@ -94,6 +95,7 @@ console.log(formattedAutoInferTemplate)
 这样创建 prompt 的时候，会自动从字符串中推测出需要输入的变量。  
 
 ### 使用部分参数创建 template
+
 我们并不需要一次性把所有变量都输入进去，在工程中，我们可能先获得某个参数，之后才能获得另一个参数。这里类似于函数式编程的概念，我们给 需要两个参数的 prompt template 传递一个参数后，就会生成需要一个参数的 prompt template。  
 
 ```js
@@ -125,7 +127,6 @@ console.log(formattedPrompt2)
 ### 使用动态填充参数
 
 当我们需要，一个 prompt template 被 `format` 时，实时地动态生成参数时，我们可以使用函数来对 template 部分参数进行指定。
-
 
 ```js
 const getCurrentDateStr = () => {
@@ -191,8 +192,8 @@ console.log(formattedPrompt);
 
 得益于 js 的灵活性，我们是可以实现官方 API 不支持的玩法。  
 
-
 ## chat prompt
+
 基础的 prompt template 算是开胃菜，因为 chat API 是目前跟 llm 交互的主流形式，`ChatPromptTemplate` 是最常用的工具。
 
 在跟各种聊天模型交互的时候，在构建聊天信息时，不仅仅包含了像上文中的文本内容，也需要与每条消息关联的角色信息。 例如这条信息是由 人类、AI、还是给 chatbot 指定的 system 信息，这种结构化的消息输入有助于模型更好地理解对话的上下文和流程，从而生成更准确、更自然的回应。  
@@ -200,6 +201,7 @@ console.log(formattedPrompt);
 为了方便地构建和处理这种结构化的聊天消息，LangChain 提供了几种与聊天相关的提示模板类，如 `ChatPromptTemplate`、`SystemMessagePromptTemplate`、`AIMessagePromptTemplate` 和 `HumanMessagePromptTemplate`。
 
 其中后面三个分别对应了一段 ChatMessage 不同的角色。在 OpenAI 的定义中，每一条消息都需要跟一个 role 关联，标识消息的发送者。角色的概念对 LLM 理解和构建整个对话流程非常重要，相同的内容由不同的 role 发送出来的意义是不同的。
+
 - `system` 角色的消息通常用于设置对话的上下文或指定模型采取特定的行为模式。这些消息不会直接显示在对话中，但它们对模型的行为有指导作用。 可以理解成模型的元信息，权重非常高，在这里有效的构建 prompt 能取得非常好的效果。
 - `user` 角色代表真实用户在对话中的发言。这些消息通常是问题、指令或者评论，反映了用户的意图和需求。
 - `assistant` 角色的消息代表AI模型的回复。这些消息是模型根据system的指示和user的输入生成的。
@@ -290,7 +292,6 @@ const chatPrompt = ChatPromptTemplate.fromMessages([
 ]);
 ```
 
-
 然后我们就可以快速组装起一个简单的 chain 来测试一下
 
 ```js
@@ -321,7 +322,8 @@ await chain.invoke({
 在实际工程中，我们可能会根据多个变量，根据多个外界环境去构造一个很复杂的 prompt，这里就是`PipelinePromptTemplate` 的应用场景。 我可以用将多个独立的 template 构建成一个完整且复杂的 prompt，这样可以提高独立 prompt 的复用性，进一步增强模块化带来的优势。  
 
 在 `PipelinePromptTemplate` 有两个核心的概念：
-- `pipelinePrompts`，一组 object，每个 object 表示 `prompt` 运行后赋值给 `name` 变量 
+
+- `pipelinePrompts`，一组 object，每个 object 表示 `prompt` 运行后赋值给 `name` 变量
 - `finalPrompt`，表示最终输出的 prompt  
 
 我们还是少废话，直接看代码
@@ -381,6 +383,7 @@ console.log(formattedPrompt)
 ```
 
 输出
+
 ```
 你是一个智能管家，今天是 3/21/2024，现在是 早上，你的主人的信息是姓名是 张三, 性别是 male, 
 根据上下文，完成主人的需求
@@ -390,6 +393,7 @@ console.log(formattedPrompt)
 ```
 
 这里有几个需要注意的地方
+
 - 一个变量可以多次复用，例如外界输入的 `period` 在 `periodPrompt` 和 `taskPrompt` 都被使用了
 - `pipelinePrompts` 中的变量可以被引用，例如我们在 `taskPrompt` 使用了 `infoPrompt` 的运行结果
 - 支持动态自定义和 partial。例子中我们也涉及到了这两种特殊的 template  
@@ -397,14 +401,6 @@ console.log(formattedPrompt)
 
 有了 `pipelinePrompts` 我们可以极大程度的复用和管理我们的 prompt template，从而让 llm app 的开发更加工程化。
 
-
 ## 小结
+
 prompt 是 llm app 最核心的价值，并且会经常修改。所以通过我们本节课介绍的各种 prompt template，我们可以更灵活的使用、管理和组装多种 prompt template！打造出最合适当前场景和对话的 prompt，从而更好地激发 llm 的能力。
-
-
-
-
-
-
-
-
